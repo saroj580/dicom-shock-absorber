@@ -1,0 +1,30 @@
+# ProRadCS Enterprise DICOM Gateway & Edge Node
+# Core Backend Dependencies - Production Locked
+
+# DICOM Core & Networking
+pydicom>=2.4.4,<3.0.0
+pynetdicom>=2.1.0,<3.0.0
+
+# Lossless Image Transcoding (JPEG-LS and JPEG 2000 Part 1)
+pylibjpeg>=2.0.0
+pylibjpeg-libjpeg>=1.3.4
+pylibjpeg-openjpeg>=1.3.3
+
+# Web API & Local Telemetry
+fastapi>=0.110.0,<1.0.0
+uvicorn[standard]>=0.28.0,<1.0.0
+websockets>=12.0,<13.0
+
+# Configuration & Data Validation
+pydantic>=2.6.4,<3.0.0
+pydantic-settings>=2.2.1,<3.0.0
+
+# HTTP Client (WAN STOW-RS Cloud Relay)
+httpx>=0.27.0,<1.0.0
+
+# System Telemetry (Watermark, CPU, Memory monitoring)
+psutil>=5.9.8,<6.0.0
+
+# Testing & Quality Assurance
+pytest>=8.1.1,<9.0.0
+pytest-asyncio>=0.23.6,<1.0.0

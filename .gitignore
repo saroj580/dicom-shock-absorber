@@ -1,0 +1,48 @@
+# Docs folder excluded as requested
+docs/
+
+# Python Virtual Environments & Bytecode
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.spec
+build/
+*.egg-info/
+.pytest_cache/
+
+# Node & Frontend Build Artifacts
+node_modules/
+dist/
+dist-ssr/
+*.local
+.npm
+*.tsbuildinfo
+
+# SQLite Database & Storage Archives
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+database.db
+/DICOM_Archive/
+staging/
+processed/
+quarantine/
+*.dcm
+*.tmp
+
+# Logs & Runtime
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS Artifacts
+Thumbs.db
+.DS_Store
