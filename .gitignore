@@ -46,3 +46,7 @@ pnpm-debug.log*
 # OS Artifacts
 Thumbs.db
 .DS_Store
+
+# Local Educational Notes & Beginner Explanations (Never committed/pushed)
+notes.md
+explanation.md
