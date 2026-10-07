@@ -66,9 +66,6 @@ Page custom CustomConfigPageShow CustomConfigPageLeave
 ; Language Configuration
 !insertmacro MUI_LANGUAGE "English"
 
-; ------------------------------------------------------------------------------
-; Initialization & Pre-Install Prerequisite Verification
-; ------------------------------------------------------------------------------
 Function .onInit
     ; 1. Enforce 64-bit Architecture
     ${IfNot} ${RunningX64}
@@ -102,6 +99,7 @@ Function .onInit
     ${If} $0 == 10
         MessageBox MB_YESNO|MB_ICONEXCLAMATION "Warning: One or more host prerequisites were not met (OS version, VC++ Redistributable, or Disk Space < 20GB).$\n$\nDo you want to continue the installation anyway?" IDYES ContinuePrereq
         Abort
+
         ContinuePrereq:
     ${ElseIf} $0 == 20
         MessageBox MB_ICONSTOP "Port Conflict Detected: Port 104 or 8080 is currently in use by another service.$\n$\nPlease terminate conflicting applications before proceeding."
@@ -109,12 +107,10 @@ Function .onInit
     ${EndIf}
 FunctionEnd
 
-; ------------------------------------------------------------------------------
-; Custom Configuration Dialog (nsDialogs)
-; ------------------------------------------------------------------------------
 Function CustomConfigPageShow
     nsDialogs::Create 1018
     Pop $Dialog
+
     ${If} $Dialog == error
         Abort
     ${EndIf}
@@ -169,15 +165,13 @@ Function CustomConfigPageLeave
         MessageBox MB_ICONEXCLAMATION "Please specify a valid archive directory."
         Abort
     ${EndIf}
+
     ${If} $AeTitle == ""
         MessageBox MB_ICONEXCLAMATION "Please specify a valid DICOM Application Entity Title."
         Abort
     ${EndIf}
 FunctionEnd
 
-; ------------------------------------------------------------------------------
-; Main Installation Section
-; ------------------------------------------------------------------------------
 Section "MainSection" SEC01
     SetOutPath "$INSTDIR"
 
@@ -202,64 +196,64 @@ Section "MainSection" SEC01
 
     ; 3. Extract Binaries and Frontend Assets (staged)
     SetOutPath "$INSTDIR\bin"
-    File /nonfatal "..\deployment\dist\proradcs-receiver.exe"
-    File /nonfatal "..\deployment\dist\proradcs-worker.exe"
-    File /nonfatal "..\deployment\dist\proradcs-web.exe"
+    File /NONFATAL "..\deployment\dist\proradcs-receiver.exe"
+    File /NONFATAL "..\deployment\dist\proradcs-worker.exe"
+    File /NONFATAL "..\deployment\dist\proradcs-web.exe"
 
     SetOutPath "$INSTDIR\frontend\dist"
-    File /nonfatal /r "..\frontend\dist\*.*"
+    File /NONFATAL /r "..\frontend\dist\*.*"
 
-    ; --------------------------------------------------------------------------
     ; 4. Execute OS Hardening & Provisioning Pipeline
-    ; --------------------------------------------------------------------------
     DetailPrint "Step 1/6: Provisioning PacsServiceWorker service account..."
     ExecWait '"$PowerShellPath" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\scripts\createUserAccounts.ps1" -AccountName "PacsServiceWorker"' $0
+
     ${If} $0 != 0
         DetailPrint "createUserAccounts.ps1 returned code: $0"
     ${EndIf}
 
     DetailPrint "Step 2/6: Configuring NTFS DACLs on $ArchiveDir..."
     ExecWait '"$PowerShellPath" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\scripts\configureStorageAcls.ps1" -ArchiveRoot "$ArchiveDir" -InstallRoot "$INSTDIR" -ServiceAccount "PacsServiceWorker"' $0
+
     ${If} $0 != 0
         DetailPrint "configureStorageAcls.ps1 returned code: $0"
     ${EndIf}
 
     DetailPrint "Step 3/6: Configuring Windows Defender Firewall rules..."
     ExecWait '"$PowerShellPath" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\scripts\setupFirewall.ps1" -DicomPort $DicomPort -WebPort $WebPort' $0
+
     ${If} $0 != 0
         DetailPrint "setupFirewall.ps1 returned code: $0"
     ${EndIf}
 
     DetailPrint "Step 4/6: Configuring system environment variables..."
     ExecWait '"$PowerShellPath" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\scripts\setEnvironmentVars.ps1" -AeTitle "$AeTitle" -DicomPort $DicomPort -WebPort $WebPort -ArchiveDir "$ArchiveDir" -CloudEndpoint "$CloudEndpoint" -NodeToken "$NodeToken"' $0
+
     ${If} $0 != 0
         DetailPrint "setEnvironmentVars.ps1 returned code: $0"
     ${EndIf}
 
     DetailPrint "Step 5/6: Registering Windows background services..."
     ExecWait '"$PowerShellPath" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\scripts\installServices.ps1" -BinDir "$INSTDIR\bin" -ServiceAccount "PacsServiceWorker" -StartImmediately' $0
+
     ${If} $0 != 0
         DetailPrint "installServices.ps1 returned code: $0"
     ${EndIf}
 
     DetailPrint "Step 6/6: Registering daily midnight WAL checkpoint and maintenance task..."
     ExecWait '"$PowerShellPath" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\scripts\backupScheduler.ps1" -DailyTime "00:00"' $0
+
     ${If} $0 != 0
         DetailPrint "backupScheduler.ps1 returned code: $0"
     ${EndIf}
 
-    ; --------------------------------------------------------------------------
     ; 5. Shortcuts & Start Menu
-    ; --------------------------------------------------------------------------
     SetOutPath "$INSTDIR"
     CreateDirectory "$SMPROGRAMS\ProRadCS"
     CreateShortcut "$SMPROGRAMS\ProRadCS\Web Dashboard.lnk" "http://localhost:$WebPort"
     CreateShortcut "$SMPROGRAMS\ProRadCS\Diagnostic Health Check.lnk" "$PowerShellPath" '-NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\scripts\healthCheck.ps1"'
     CreateShortcut "$SMPROGRAMS\ProRadCS\Uninstall ProRadCS.lnk" "$INSTDIR\uninstall.exe"
 
-    ; --------------------------------------------------------------------------
     ; 6. Windows Add/Remove Programs Registry Entries
-    ; --------------------------------------------------------------------------
     DetailPrint "Writing Windows uninstaller registry records..."
     WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayName" "${APPNAME} (${PRODUCT_VERSION})"
     WriteRegStr HKLM "${REG_UNINSTALL}" "UninstallString" '"$INSTDIR\uninstall.exe"'
@@ -280,9 +274,7 @@ Section "MainSection" SEC01
     ExecWait '"$PowerShellPath" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\scripts\healthCheck.ps1"' $0
 SectionEnd
 
-; ------------------------------------------------------------------------------
 ; Uninstaller Implementation
-; ------------------------------------------------------------------------------
 Function un.onInit
     ${If} ${RunningX64}
         StrCpy $PowerShellPath "$WINDIR\SysNative\WindowsPowerShell\v1.0\powershell.exe"
