@@ -127,14 +127,15 @@ class WebDashboardDaemon:
         app: Optional[FastAPI] = None,
         host: Optional[str] = None,
         port: Optional[int] = None,
+        dist_dir: Optional[Path] = None,
         db: Optional[DatabaseManager] = None,
         audit: Optional[AuditLogger] = None,
     ) -> None:
         self.host = host or settings.web_host
         self.port = port or settings.web_port
         self.db = db if db is not None else db_manager
-        self.audit = audit if audit is not None else audit_logger
-        self.app = app or create_app(audit=self.audit)
+        self.audit = audit if audit is not None else (AuditLogger(db=self.db) if db is not None else audit_logger)
+        self.app = app or create_app(dist_dir=dist_dir, audit=self.audit)
         self.server: Optional[uvicorn.Server] = None
         self._stop_event = threading.Event()
 
