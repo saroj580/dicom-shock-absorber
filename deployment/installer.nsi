@@ -24,7 +24,7 @@ SetCompressor /SOLID lzma
 !define REG_UNINSTALL "Software\Microsoft\Windows\CurrentVersion\Uninstall\ProRadCS Gateway"
 
 Name "${APPNAME} ${PRODUCT_VERSION}"
-OutFile "..\deployment\dist\ProRadCS_Gateway_Setup_v1.0.0.exe"
+OutFile "..\deployment\dist\ProRadCS_Gateway_Setup_v${VERSIONMAJOR}.${VERSIONMINOR}.${VERSIONPATCH}.${VERSIONBUILD}.exe"
 InstallDir "$PROGRAMFILES64\ProRadCS"
 RequestExecutionLevel admin
 
